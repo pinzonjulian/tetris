@@ -26,8 +26,8 @@ class Game
     @game_ended = false
     @keyboard = args.inputs.keyboard
     @controller_one = args.inputs.controller_one
-    @grid = []
-
+    @grid = Grid.new(width: GRID_COLUMNS, height: GRID_ROWS)
+    
     reset_position_for_next_piece
     build_grid
     select_next_piece
@@ -134,7 +134,7 @@ class Game
 
         x = @current_piece_x - 1
         y = @current_piece_y + 1
-        return true if grid[x][y] != 0
+        return true if grid.cells[x][y] != 0
       end
     end
     return false
@@ -163,7 +163,7 @@ class Game
         x = @current_piece_x + @current_piece.size
         y = @current_piece_y + @current_piece.first.size
 
-        return true if grid[x][y] != 0
+        return true if grid.cells[x][y] != 0
       end
     end
     return false
@@ -212,14 +212,7 @@ class Game
   end
 
   def plant_current_piece
-    @current_piece.each_with_index do |piece_row, piece_row_i|
-      piece_row.each_with_index do |_, piece_column_i|
-        x = @current_piece_x + piece_row_i
-        y = @current_piece_y + piece_column_i
-        next if grid[x][y] != 0
-        grid[x][y] = @current_piece[piece_row_i][piece_column_i]
-      end
-    end
+    grid.plant_piece(x: @current_piece_x, y: @current_piece_y, piece: @current_piece)
   end
 
   def collision_detected?
@@ -232,7 +225,7 @@ class Game
         next if value.zero?
         x = @current_piece_x + piece_row_i
         y = @current_piece_y + piece_column_i + 1
-        return true if grid[x][y] != 0
+        return true if grid.cells[x][y] != 0
       end
     end
     false
@@ -263,9 +256,9 @@ class Game
     columns = (0..(GRID_COLUMNS - 1))
 
     columns.each do |column|
-      grid[column] = []
+      grid.cells[column] = []
       rows.each do |row|
-        grid[column][row] = 0
+        grid.cells[column][row] = 0
       end
     end
   end
@@ -288,9 +281,9 @@ class Game
   end
 
   def render_grid
-    grid.each_with_index do |row, x|
+    grid.cells.each_with_index do |row, x|
       row.each_with_index do |value, y|
-        render_cube(x, y, color: value) unless grid[x][y].zero?
+        render_cube(x, y, color: value) unless grid.cells[x][y].zero?
       end
     end
   end

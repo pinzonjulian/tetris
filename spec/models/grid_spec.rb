@@ -11,8 +11,8 @@ RSpec.describe Grid do
   subject { grid_instance }
 
   it "is initialized properly" do
-    expect(subject.grid.size).to eq 10
-    expect(subject.grid.first.size).to eq 20
+    expect(subject.cells.size).to eq 10
+    expect(subject.cells.first.size).to eq 20
   end
 
   describe "#plant_piece" do
@@ -22,8 +22,8 @@ RSpec.describe Grid do
       subject.plant_piece(x: x, y: y, piece: square_piece)
 
       result = [
-        subject.grid[8][18], subject.grid[8][19],
-        subject.grid[9][18], subject.grid[9][19]
+        subject.cells[8][18], subject.cells[8][19],
+        subject.cells[9][18], subject.cells[9][19]
       ].all?(1)
 
       expect(result).to be true
