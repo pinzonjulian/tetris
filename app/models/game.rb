@@ -1,4 +1,4 @@
-require "app/grid.rb"
+require "app/models/grid.rb"
 
 class Game
   SCREEN_WIDTH = 1280

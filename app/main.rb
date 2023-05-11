@@ -1,6 +1,6 @@
 $gtk.reset
 
-require "app/game.rb"
+require "app/models/game.rb"
 
 def tick(args)
   args.state.game ||= Game.new(args)
