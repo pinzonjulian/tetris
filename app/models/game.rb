@@ -1,4 +1,5 @@
 require "app/models/grid.rb"
+require "app/models/piece.rb"
 
 class Game
   SCREEN_WIDTH = 1280
@@ -46,7 +47,6 @@ class Game
   attr_reader :keyboard, :controller_one
 
   def iterate
-    debug
     move_left
     move_right
     move_down
@@ -69,21 +69,22 @@ class Game
   def rotate_left
     return unless rotate_left_detected?
 
-    @current_piece = @current_piece.transpose.map(&:reverse)
-    if @current_piece_x + @current_piece.size >= GRID_COLUMNS
-      @current_piece_x = @current_piece_x - @current_piece.size + 3
+    @current_piece.transpose
+
+    if @current_piece_x + @current_piece.width >= GRID_COLUMNS
+      @current_piece_x = @current_piece_x - @current_piece.width + 3
     end
   end
 
   def rotate_right
     return unless rotate_right_detected?
 
-    @current_piece = @current_piece.transpose.map(&:reverse)
-    @current_piece = @current_piece.transpose.map(&:reverse)
-    @current_piece = @current_piece.transpose.map(&:reverse)
+    @current_piece.transpose
+    @current_piece.transpose
+    @current_piece.transpose
 
-    if (@current_piece_x + @current_piece.size) >= GRID_COLUMNS
-      @current_piece_x = @current_piece_x - @current_piece.size
+    if (@current_piece_x + @current_piece.width) >= GRID_COLUMNS
+      @current_piece_x = @current_piece_x - @current_piece.width
     end
   end
 
@@ -100,21 +101,6 @@ class Game
     @current_piece_y = 0
   end
 
-  def debug
-    if keyboard.key_down.pageup || keyboard.key_held.pageup
-      @tick_rate += 1
-    end
-    if keyboard.key_down.pagedown || keyboard.key_held.pagedown
-      @tick_rate -= 1 unless @tick_rate == 1
-    end
-    if keyboard.key_down.r
-      $gtk.reset
-    end
-    @args.outputs.labels << [100, 600, "@tick_rate = #{@tick_rate}", 255,     128,  128,   255]
-    @args.outputs.labels << [100, 500, "@current_piece_x = #{@current_piece_x}", 255,     128,  128,   255]
-    @args.outputs.labels << [100, 400, "@current_piece_y = #{@current_piece_y}", 255,     128,  128,   255]
-  end
-
   def move_left
     return unless left_movement_detected?
     return if piece_detected_left?
@@ -128,9 +114,9 @@ class Game
   end
 
   def piece_detected_left?
-    @current_piece.each_with_index do |row, row_i|
+    @current_piece.matrix.each_with_index do |row, row_i|
       row.each_with_index do |_, col_i|
-        next if @current_piece[row_i][col_i] == 0
+        next if @current_piece.matrix[row_i][col_i] == 0
 
         x = @current_piece_x - 1
         y = @current_piece_y + 1
@@ -145,10 +131,7 @@ class Game
     return if out_of_right_bounds?
     return if piece_detected_right?
 
-    @debug_right = @current_piece_x + (@current_piece.size)
-
     @current_piece_x += 1
-
   end
 
   def right_movement_detected?
@@ -156,12 +139,12 @@ class Game
   end
 
   def piece_detected_right?
-    @current_piece.each_with_index do |row, row_i|
+    @current_piece.matrix.each_with_index do |row, row_i|
       row.each_with_index do |_, col_i|
-        next if @current_piece[row_i][col_i].nil? || @current_piece[row_i][col_i] == 0
+        next if @current_piece.matrix[row_i][col_i].nil? || @current_piece.matrix[row_i][col_i] == 0
 
-        x = @current_piece_x + @current_piece.size
-        y = @current_piece_y + @current_piece.first.size
+        x = @current_piece_x + @current_piece.width
+        y = @current_piece_y + @current_piece.height
 
         return true if grid.cells[x][y] != 0
       end
@@ -174,7 +157,7 @@ class Game
   end
 
   def out_of_right_bounds?
-    @current_piece_x + (@current_piece.size) >= (GRID_COLUMNS)
+    @current_piece_x + (@current_piece.width) >= (GRID_COLUMNS)
   end
 
   def move_down
@@ -198,17 +181,7 @@ class Game
   end
 
   def select_next_piece
-    x = (1..7).to_a.sample
-
-    @current_piece = case x
-                     when 1 then [[0, x], [0, x], [x, x]]
-                     when 2 then [[x, x], [0, x], [0, x]]
-                     when 3 then [[x, x, x, x]]
-                     when 4 then [[x, 0], [x, x], [0, x]]
-                     when 5 then [[0, x], [x, x], [x, 0]]
-                     when 6 then [[x, x], [x, x]]
-                     when 7 then [[0, x], [x, x], [0, x]]
-                     end
+    @current_piece = Piece.random
   end
 
   def plant_current_piece
@@ -216,23 +189,15 @@ class Game
   end
 
   def collision_detected?
-    current_piece_reached_bottom? || current_piece_collides_at_bottom?
+    current_piece_reached_bottom? || space_already_occupied?
   end
 
-  def current_piece_collides_at_bottom?
-    @current_piece.each_with_index do |piece_row, piece_row_i|
-      piece_row.each_with_index do |value, piece_column_i|
-        next if value.zero?
-        x = @current_piece_x + piece_row_i
-        y = @current_piece_y + piece_column_i + 1
-        return true if grid.cells[x][y] != 0
-      end
-    end
-    false
+  def space_already_occupied?
+    grid.already_occupied?(x: @current_piece_x, y: @current_piece_y + 1, piece: @current_piece)
   end
 
   def current_piece_reached_bottom?
-    @current_piece_y == GRID_ROWS - 2
+    @current_piece_y + @current_piece.height == GRID_ROWS + 1
   end
 
   def move_current_piece_down
@@ -244,9 +209,9 @@ class Game
   end
 
   def render_current_piece
-    @current_piece.each_with_index do |column, column_i|
+    @current_piece.matrix.each_with_index do |column, column_i|
       column.each_with_index do |value, row_i|
-        render_cube(@current_piece_x + column_i, @current_piece_y + row_i, color: value) unless @current_piece[column_i][row_i].zero?
+        render_cube(@current_piece_x + column_i, @current_piece_y + row_i, color: value) unless @current_piece.matrix[column_i][row_i].zero?
       end
     end
   end

@@ -1,27 +1,3 @@
-
-# [
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
-#   [0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
-# ]
-
 class Grid
   class OverflowXError < StandardError; end;
   class OverflowYError < StandardError; end;
@@ -36,22 +12,23 @@ class Grid
   attr_reader :cells, :width, :height
 
   def plant_piece(x:, y:, piece:)
-    raise OverflowXError if (x + piece.first.size) > width
-    if (y + piece.first.size) > height
+    raise OverflowXError if (x + piece.width) > width
+    if (y + piece.height) > height + 1
+      puts [y, y + piece.height, height]
       raise OverflowYError
     end
 
-    piece.each_with_index do |piece_row, piece_row_i|
+    piece.matrix.each_with_index do |piece_row, piece_row_i|
       piece_row.each_with_index do |_, piece_column_i|
         plant_x = x + piece_row_i
         plant_y = y + piece_column_i
-        cells[plant_x][plant_y] = piece[piece_row_i][piece_column_i]
+        cells[plant_x][plant_y] = piece.matrix[piece_row_i][piece_column_i]
       end
     end
   end
 
   def already_occupied?(x:, y:, piece: )
-    piece.each_with_index do |piece_row, piece_row_i|
+    piece.matrix.each_with_index do |piece_row, piece_row_i|
       piece_row.each_with_index do |_, piece_column_i|
         new_x = x + piece_row_i
         new_y = y + piece_column_i

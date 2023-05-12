@@ -1,0 +1,35 @@
+class Piece
+  TETROMINOES =   {
+    I: [[1, 1, 1, 1]],
+    O: [[2, 2], [2, 2]],
+    T: [[0, 3], [3, 3], [0, 3]],
+    J: [[4, 4], [0, 4], [0, 4]],
+    L: [[5, 5], [5, 0], [5, 0]],
+    S: [[0, 6], [6, 6], [6, 0]],
+    Z: [[7, 0], [7, 7], [0, 7]],
+  }
+
+  class << self
+    def random
+      new(name: TETROMINOES.keys.sample)
+    end
+  end
+
+  def initialize(name:)
+    @name = name
+    @matrix = TETROMINOES[name]
+  end
+  attr_reader :matrix
+
+  def width
+    matrix.first.size
+  end
+
+  def height
+    matrix.size
+  end
+
+  def transpose
+    @matrix = matrix.transpose.map(&:reverse)
+  end
+end
