@@ -13,7 +13,7 @@ class Grid
 
   attr_reader :cells, :width, :height
 
-  def plant_piece(x:, y:, piece:)
+  def plant_piece(piece:, x:, y:)
     raise OverflowXError if (x + piece.width) > width
     if (y + piece.height) > height + 1
       raise OverflowYError
@@ -30,7 +30,7 @@ class Grid
     end
   end
 
-  def already_occupied?(x:, y:, piece: )
+  def already_occupied?(piece:, x:, y: )
     piece.matrix.each_with_index do |piece_row, piece_row_i|
       piece_row.each_with_index do |value, piece_column_i|
         next if value.zero?

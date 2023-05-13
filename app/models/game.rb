@@ -35,7 +35,7 @@ class Game
     build_grid
   end
 
-  attr_reader :current_piece_x, :current_piece_y, :current_piece
+  attr_accessor :current_piece_x, :current_piece_y, :current_piece
 
   def tick
     debug
@@ -92,21 +92,33 @@ class Game
   def rotate_left
     return unless rotate_left_detected?
 
-    @current_piece.rotate_left
+    current_piece.rotate_left
+    if grid.already_occupied?(piece: current_piece, x: current_piece_x, y:current_piece_y)
+      current_piece.rotate_right
+      return
+    end
 
-    if @current_piece_x + @current_piece.width >= GRID_COLUMNS
-      @current_piece_x = @current_piece_x - @current_piece.width + 3
+    if grid.out_of_right_bound?(piece: current_piece, x: current_piece_x)
+      correct_current_piece_x_after_rotation
     end
   end
 
   def rotate_right
     return unless rotate_right_detected?
 
-    @current_piece.rotate_right
-
-    if (@current_piece_x + @current_piece.width) >= GRID_COLUMNS
-      @current_piece_x = @current_piece_x - @current_piece.width
+    current_piece.rotate_right
+    if grid.already_occupied?(piece: current_piece, x: current_piece_x, y:current_piece_y)
+      current_piece.rotate_left
+      return
     end
+
+    if grid.out_of_right_bound?(piece: current_piece, x: current_piece_x)
+      correct_current_piece_x_after_rotation
+    end
+  end
+
+  def correct_current_piece_x_after_rotation
+    self.current_piece_x = current_piece_x - current_piece.width
   end
 
   def rotate_left_detected?
@@ -118,8 +130,8 @@ class Game
   end
 
   def reset_position_for_next_piece
-    @current_piece_x = 5
-    @current_piece_y = 0
+    self.current_piece_x = 5
+    self.current_piece_y = 0
   end
 
   def move_left
