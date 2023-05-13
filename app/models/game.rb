@@ -135,16 +135,7 @@ class Game
   end
 
   def piece_detected_left?
-    @current_piece.matrix.each_with_index do |row, row_i|
-      row.each_with_index do |_, col_i|
-        next if @current_piece.matrix[row_i][col_i] == 0
-
-        x = @current_piece_x - 1
-        y = @current_piece_y + 1
-        return true if grid.cells[x][y] != 0
-      end
-    end
-    return false
+    grid.already_occupied?(x: @current_piece_x - 1, y: @current_piece_y, piece: @current_piece)
   end
 
   def move_right
@@ -160,17 +151,7 @@ class Game
   end
 
   def piece_detected_right?
-    @current_piece.matrix.each_with_index do |row, row_i|
-      row.each_with_index do |_, col_i|
-        next if @current_piece.matrix[row_i][col_i].nil? || @current_piece.matrix[row_i][col_i] == 0
-
-        x = @current_piece_x + @current_piece.width
-        y = @current_piece_y + @current_piece.height
-
-        return true if grid.cells[x][y] != 0
-      end
-    end
-    return false
+    grid.already_occupied?(x: @current_piece_x + 1, y: @current_piece_y, piece: @current_piece)
   end
 
   def out_of_left_bound?
