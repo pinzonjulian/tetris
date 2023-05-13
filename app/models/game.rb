@@ -88,7 +88,7 @@ class Game
   def rotate_left
     return unless rotate_left_detected?
 
-    @current_piece.transpose
+    @current_piece.rotate_left
 
     if @current_piece_x + @current_piece.width >= GRID_COLUMNS
       @current_piece_x = @current_piece_x - @current_piece.width + 3
@@ -98,9 +98,7 @@ class Game
   def rotate_right
     return unless rotate_right_detected?
 
-    @current_piece.transpose
-    @current_piece.transpose
-    @current_piece.transpose
+    @current_piece.rotate_right
 
     if (@current_piece_x + @current_piece.width) >= GRID_COLUMNS
       @current_piece_x = @current_piece_x - @current_piece.width

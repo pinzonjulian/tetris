@@ -1,5 +1,6 @@
 require "spec_helper"
 require "./app/models/grid"
+require "./app/models/piece"
 
 RSpec.describe Grid do
   let(:width) { 10 }
@@ -97,6 +98,23 @@ RSpec.describe Grid do
 
         it { is_expected.to be true }
       end
+    end
+    describe "when the incoming piece is a rotated J" do
+      before do
+        initial_piece = Piece.new(name: :J)
+        initial_piece.rotate_left
+        initial_piece.rotate_left
+        grid_instance.plant_piece(x: 0, y: 18, piece: initial_piece)
+        piece.rotate_left
+        piece.rotate_left
+      end
+
+      let(:piece) { Piece.new(name: :J) }
+      let(:incoming_x) { 1 }
+      let(:incoming_y) { 17 }
+
+      it { is_expected.to be false }
+
     end
   end
 end

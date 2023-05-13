@@ -30,20 +30,16 @@ class Grid
 
   def already_occupied?(x:, y:, piece: )
     piece.matrix.each_with_index do |piece_row, piece_row_i|
-      piece_row.each_with_index do |_, piece_column_i|
+      piece_row.each_with_index do |value, piece_column_i|
+        next if value.zero?
+
         new_x = x + piece_row_i
         new_y = y + piece_column_i
 
         cell_to_check = cells[new_x][new_y]
 
-        return true if cell_to_check != 0
-      rescue StandardError => e
-        puts "GRID DEBUG"
-        puts [x, y]
-        puts [new_x, new_y]
-        puts cells
-        puts cells[new_x]
-        raise e
+        result = cell_to_check != 0
+        return true if result
       end
     end
     return false
