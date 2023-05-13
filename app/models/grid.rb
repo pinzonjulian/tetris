@@ -2,6 +2,8 @@ class Grid
   class OverflowXError < StandardError; end;
   class OverflowYError < StandardError; end;
 
+  GRID_START = 0
+
   def initialize(width:, height:)
     @width = width
     @height = height
@@ -14,7 +16,6 @@ class Grid
   def plant_piece(x:, y:, piece:)
     raise OverflowXError if (x + piece.width) > width
     if (y + piece.height) > height + 1
-      puts [y, y + piece.height, height]
       raise OverflowYError
     end
 
@@ -32,12 +33,36 @@ class Grid
       piece_row.each_with_index do |_, piece_column_i|
         new_x = x + piece_row_i
         new_y = y + piece_column_i
+
         cell_to_check = cells[new_x][new_y]
 
         return true if cell_to_check != 0
+      rescue StandardError => e
+        puts "GRID DEBUG"
+        puts [x, y]
+        puts [new_x, new_y]
+        puts cells
+        puts cells[new_x]
+        raise e
       end
     end
     return false
+  end
+
+  def reached_bottom?(piece:, y:)
+    y + piece.height == height
+  end
+
+  def out_of_bottom_bound?(piece:, y:)
+    (y + piece.height) >= height
+  end
+
+  def out_of_right_bound?(piece:, x:)
+    (x + piece.width) > width
+  end
+
+  def out_of_left_bound?(x)
+    x < GRID_START
   end
 
   private

@@ -19,14 +19,14 @@ class Piece
     @name = name
     @matrix = TETROMINOES[name]
   end
-  attr_reader :matrix
+  attr_reader :matrix, :name
 
   def width
-    matrix.first.size
+    matrix.size
   end
 
   def height
-    matrix.size
+    matrix.first.size
   end
 
   def transpose

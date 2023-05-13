@@ -28,16 +28,35 @@ class Game
     @keyboard = args.inputs.keyboard
     @controller_one = args.inputs.controller_one
     @grid = Grid.new(width: GRID_COLUMNS, height: GRID_ROWS)
-    
+
     reset_position_for_next_piece
+    @current_piece = select_next_piece
+
     build_grid
-    select_next_piece
   end
 
+  attr_reader :current_piece_x, :current_piece_y, :current_piece
+
   def tick
+    debug
     iterate
     render
     nil
+  end
+
+  def debug
+    if keyboard.key_down.pageup || keyboard.key_held.pageup
+      @tick_rate += 1
+    end
+    if keyboard.key_down.pagedown || keyboard.key_held.pagedown
+      @tick_rate -= 1 unless @tick_rate == 1
+    end
+    if keyboard.key_down.r
+      $gtk.reset
+    end
+    @args.outputs.labels << [100, 600, "@tick_rate = #{@tick_rate}", 255,     128,  128,   255]
+    @args.outputs.labels << [100, 500, "@current_piece_x = #{@current_piece_x}", 255,     128,  128,   255]
+    @args.outputs.labels << [100, 400, "@current_piece_y = #{@current_piece_y}", 255,     128,  128,   255]
   end
 
   attr_accessor :grid
@@ -153,11 +172,13 @@ class Game
   end
 
   def out_of_left_bound?
-    @current_piece_x - 1 < 0
+    attempted_x = @current_piece_x - 1
+    grid.out_of_left_bound?(attempted_x)
   end
 
   def out_of_right_bounds?
-    @current_piece_x + (@current_piece.width) >= (GRID_COLUMNS)
+    attempted_x = @current_piece_x + 1
+    grid.out_of_right_bound?(x: attempted_x, piece: @current_piece)
   end
 
   def move_down
@@ -181,7 +202,7 @@ class Game
   end
 
   def select_next_piece
-    @current_piece = Piece.random
+    Piece.new(name: Piece::TETROMINOES.keys.sample)
   end
 
   def plant_current_piece
@@ -197,7 +218,7 @@ class Game
   end
 
   def current_piece_reached_bottom?
-    @current_piece_y + @current_piece.height == GRID_ROWS + 1
+    grid.reached_bottom?(piece: @current_piece, y: @current_piece_y)
   end
 
   def move_current_piece_down
