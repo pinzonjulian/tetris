@@ -17,7 +17,7 @@ RSpec.describe Grid do
   end
 
   describe "#plant_piece" do
-    let(:square_piece) { [[1, 1], [1, 1]] }
+    let(:square_piece) { Piece.new(name: :O) }
 
     it "saves a piece into the grid in the correct position" do
       subject.plant_piece(x: x, y: y, piece: square_piece)
@@ -25,7 +25,7 @@ RSpec.describe Grid do
       result = [
         subject.cells[8][18], subject.cells[8][19],
         subject.cells[9][18], subject.cells[9][19]
-      ].all?(1)
+      ].none?(0)
 
       expect(result).to be true
     end
@@ -63,7 +63,7 @@ RSpec.describe Grid do
     end
 
     describe "when the incoming piece is a square" do
-      let(:piece) { [[1, 1], [1, 1]] }
+      let(:piece) { Piece.new(name: :O) }
 
       context "and it's above but not touching" do
         let(:incoming_x) { 4 }

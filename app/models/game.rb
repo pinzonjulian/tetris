@@ -200,7 +200,7 @@ class Game
   end
 
   def select_next_piece
-    Piece.new(name: Piece::TETROMINOES.keys.sample)
+    Piece.random
   end
 
   def plant_current_piece

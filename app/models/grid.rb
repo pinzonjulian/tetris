@@ -23,7 +23,9 @@ class Grid
       piece_row.each_with_index do |_, piece_column_i|
         plant_x = x + piece_row_i
         plant_y = y + piece_column_i
-        cells[plant_x][plant_y] = piece.matrix[piece_row_i][piece_column_i]
+        cell_to_stamp = piece.matrix[piece_row_i][piece_column_i]
+        next if cell_to_stamp.zero?
+        cells[plant_x][plant_y] = cell_to_stamp
       end
     end
   end
