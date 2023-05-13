@@ -35,7 +35,7 @@ class Game
     build_grid
   end
 
-  attr_accessor :current_piece_x, :current_piece_y, :current_piece
+  attr_reader :current_piece_x, :current_piece_y, :current_piece
 
   def tick
     debug
@@ -63,6 +63,7 @@ class Game
 
   private
   attr_reader :keyboard, :controller_one
+  attr_writer :current_piece_x, :current_piece_y, :current_piece
 
   def iterate
     move_left
