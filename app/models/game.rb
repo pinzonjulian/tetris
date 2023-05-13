@@ -30,7 +30,7 @@ class Game
     @grid = Grid.new(width: GRID_COLUMNS, height: GRID_ROWS)
 
     reset_position_for_next_piece
-    @current_piece = select_next_piece
+    set_next_piece
 
     build_grid
   end
@@ -62,7 +62,6 @@ class Game
   attr_accessor :grid
 
   private
-
   attr_reader :keyboard, :controller_one
 
   def iterate
@@ -78,12 +77,17 @@ class Game
     if collision_detected?
       plant_current_piece
       reset_position_for_next_piece
-      select_next_piece
+      set_next_piece
     else
       move_current_piece_down
     end
     reset_tick_rate
   end
+
+  def set_next_piece
+    @current_piece = select_next_piece
+  end
+
 
   def rotate_left
     return unless rotate_left_detected?

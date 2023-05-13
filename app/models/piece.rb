@@ -11,7 +11,7 @@ class Piece
 
   class << self
     def random
-      new(name: TETROMINOES.keys[rand(6)])
+      new(name: TETROMINOES.keys.sample)
     end
   end
 
