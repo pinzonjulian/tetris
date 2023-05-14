@@ -58,63 +58,109 @@ RSpec.describe Grid do
   describe "#already_occupied?" do
     subject { grid_instance.already_occupied?(x: incoming_x, y: incoming_y, piece: piece) }
 
-    before do
-      grid_instance.plant_piece(x: 4, y: 18, piece: piece)
+    context "when there are no pieces in the grid" do
+      context "and a rotation attempt makes the piece overflow the grid" do
+        let(:incoming_x) { 8 }
+        let(:incoming_y) { 8 }
+        let(:piece) { Piece.new(name: :L) }
+
+        before do
+          piece.rotate_left
+          piece.rotate_left
+        end
+
+        it "raises an OverflowXError" do
+          expect { subject }.to raise_error Grid::OverflowXError
+        end
+      end
     end
 
-    describe "when the incoming piece is a square" do
-      let(:piece) { Piece.new(name: :O) }
+    context "when there is a piece in the grid" do
+      before do
+        grid_instance.plant_piece(x: 4, y: 18, piece: piece)
+      end
 
-      context "and it's above but not touching" do
-        let(:incoming_x) { 4 }
-        let(:incoming_y) { 16 }
+      context "when the incoming piece is a square" do
+        let(:piece) { Piece.new(name: :O) }
+
+        context "and it's above but not touching" do
+          let(:incoming_x) { 4 }
+          let(:incoming_y) { 16 }
+
+          it { is_expected.to be false }
+        end
+        context "and it's overlapping only in one cell on the left" do
+          let(:incoming_x) { 3 }
+          let(:incoming_y) { 17 }
+
+          it { is_expected.to be true }
+        end
+
+        context "and an incoming one is overlapping by two cells on the left" do
+          let(:incoming_x) { 3 }
+          let(:incoming_y) { 18 }
+
+          it { is_expected.to be true }
+        end
+
+        context "and it's overlapping only in one cell on the right" do
+          let(:incoming_x) { 5 }
+          let(:incoming_y) { 17 }
+
+          it { is_expected.to be true }
+        end
+
+        context "and it's overlapping by two cells on the right" do
+          let(:incoming_x) { 5 }
+          let(:incoming_y) { 18 }
+
+          it { is_expected.to be true }
+        end
+      end
+      context "when the incoming piece is a rotated J" do
+        before do
+          initial_piece = Piece.new(name: :J)
+          initial_piece.rotate_left
+          initial_piece.rotate_left
+          grid_instance.plant_piece(x: 0, y: 18, piece: initial_piece)
+          piece.rotate_left
+          piece.rotate_left
+        end
+
+        let(:piece) { Piece.new(name: :J) }
+        let(:incoming_x) { 1 }
+        let(:incoming_y) { 17 }
 
         it { is_expected.to be false }
-      end
-      context "and it's overlapping only in one cell on the left" do
-        let(:incoming_x) { 3 }
-        let(:incoming_y) { 17 }
 
-        it { is_expected.to be true }
-      end
-
-      context "and an incoming one is overlapping by two cells on the left" do
-        let(:incoming_x) { 3 }
-        let(:incoming_y) { 18 }
-
-        it { is_expected.to be true }
-      end
-
-      context "and it's overlapping only in one cell on the right" do
-        let(:incoming_x) { 5 }
-        let(:incoming_y) { 17 }
-
-        it { is_expected.to be true }
-      end
-
-      context "and it's overlapping by two cells on the right" do
-        let(:incoming_x) { 5 }
-        let(:incoming_y) { 18 }
-
-        it { is_expected.to be true }
       end
     end
-    describe "when the incoming piece is a rotated J" do
+
+  end
+
+  describe "regresion" do
+
+    context "somethig" do
+
+    end
+  end
+
+  describe "#completed_rows?" do
+    subject { grid_instance.completed_rows? }
+    context "when there aren't any completed rows" do
+      it { is_expected.to be false}
+    end
+
+    context "when there are completed rows" do
       before do
-        initial_piece = Piece.new(name: :J)
-        initial_piece.rotate_left
-        initial_piece.rotate_left
-        grid_instance.plant_piece(x: 0, y: 18, piece: initial_piece)
-        piece.rotate_left
-        piece.rotate_left
+        o = Piece.new(name: :O)
+        grid_instance.plant_piece(piece: o, x: 0, y: 19)
+        grid_instance.plant_piece(piece: o, x: 2, y: 19)
+        grid_instance.plant_piece(piece: o, x: 4, y: 19)
+        grid_instance.plant_piece(piece: o, x: 6, y: 19)
+        grid_instance.plant_piece(piece: o, x: 8, y: 19)
       end
-
-      let(:piece) { Piece.new(name: :J) }
-      let(:incoming_x) { 1 }
-      let(:incoming_y) { 17 }
-
-      it { is_expected.to be false }
-
+      it { is_expected.to be true}
     end
   end
 end

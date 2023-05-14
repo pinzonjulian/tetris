@@ -54,9 +54,9 @@ class Game
     if keyboard.key_down.r
       $gtk.reset
     end
-    @args.outputs.labels << [100, 600, "@tick_rate = #{@tick_rate}", 255,     128,  128,   255]
-    @args.outputs.labels << [100, 500, "@current_piece_x = #{@current_piece_x}", 255,     128,  128,   255]
-    @args.outputs.labels << [100, 400, "@current_piece_y = #{@current_piece_y}", 255,     128,  128,   255]
+    @args.outputs.labels << [100, 600, "score = #{@score}", 255,     128,  128,   255]
+    @args.outputs.labels << [100, 500, "@tick_rate = #{@tick_rate}", 255,     128,  128,   255]
+    @args.outputs.labels << [100, 400, "@next_move = #{@next_move}", 255,     128,  128,   255]
   end
 
   attr_accessor :grid
@@ -73,16 +73,31 @@ class Game
     rotate_right
 
     @next_move -= 1
-    return unless @next_move.zero?
+    return unless @next_move <= 0
 
     if collision_detected?
       plant_current_piece
       reset_position_for_next_piece
+      increase_score
+      # increase_speed
       set_next_piece
     else
       move_current_piece_down
     end
     reset_tick_rate
+  end
+
+  def increase_score
+    return unless grid.completed_rows?
+
+    grid.clear_completed_rows
+    @score += grid.cleared_rows_count
+    grid.reset_cleared_rows_count
+    increase_speed
+  end
+
+  def increase_speed
+    @tick_rate = @tick_rate / Math.log10(10 + @score)
   end
 
   def set_next_piece
@@ -94,13 +109,14 @@ class Game
     return unless rotate_left_detected?
 
     current_piece.rotate_left
-    if grid.already_occupied?(piece: current_piece, x: current_piece_x, y:current_piece_y)
-      current_piece.rotate_right
-      return
-    end
 
     if grid.out_of_right_bound?(piece: current_piece, x: current_piece_x)
       correct_current_piece_x_after_rotation
+    end
+
+    if grid.already_occupied?(piece: current_piece, x: current_piece_x, y:current_piece_y)
+      current_piece.rotate_right
+      return
     end
   end
 
@@ -108,18 +124,20 @@ class Game
     return unless rotate_right_detected?
 
     current_piece.rotate_right
+
+    if grid.out_of_right_bound?(piece: current_piece, x: current_piece_x)
+      correct_current_piece_x_after_rotation
+    end
+
     if grid.already_occupied?(piece: current_piece, x: current_piece_x, y:current_piece_y)
       current_piece.rotate_left
       return
     end
 
-    if grid.out_of_right_bound?(piece: current_piece, x: current_piece_x)
-      correct_current_piece_x_after_rotation
-    end
   end
 
   def correct_current_piece_x_after_rotation
-    self.current_piece_x = current_piece_x - current_piece.width
+    self.current_piece_x = current_piece_x - current_piece.width + 1
   end
 
   def rotate_left_detected?

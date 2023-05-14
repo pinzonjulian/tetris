@@ -8,10 +8,11 @@ class Grid
     @width = width
     @height = height
     @cells = []
+    @cleared_rows_count = 0
     build_grid
   end
 
-  attr_reader :cells, :width, :height
+  attr_reader :cells, :width, :height, :cleared_rows_count
 
   def plant_piece(piece:, x:, y:)
     raise OverflowXError if (x + piece.width) > width
@@ -38,6 +39,8 @@ class Grid
         new_x = x + piece_row_i
         new_y = y + piece_column_i
 
+        raise OverflowXError if new_x >= width
+
         cell_to_check = cells[new_x][new_y]
 
         result = cell_to_check != 0
@@ -61,6 +64,31 @@ class Grid
 
   def out_of_left_bound?(x)
     x < GRID_START
+  end
+
+  def completed_rows?
+    cells.transpose.reverse.any? do |row|
+      row.none?(0)
+    end
+  end
+
+  def clear_completed_rows
+    new_cells = []
+
+    cells.transpose.each do |row|
+      if row.any?(0)
+        new_cells << row
+        next
+      end
+      @cleared_rows_count += 1
+      new_cells.prepend [0,0,0,0,0,0,0,0,0,0]
+    end
+
+    @cells = new_cells.transpose
+  end
+
+  def reset_cleared_rows_count
+    @cleared_rows_count = 0
   end
 
   private
