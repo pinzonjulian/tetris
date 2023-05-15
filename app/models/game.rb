@@ -16,11 +16,15 @@ class Game
     [0, 255, 255], # teal
     [255, 0, 255], # magenta
     [170, 170, 170], # gray
-    [100,100,100, 70] # dark_gray
+    [100, 100, 100, 70] # dark_gray
   ]
 
   def initialize(args)
     @args = args
+    start_game
+  end
+
+  def start_game
     @tick_rate = 30
     @next_move = @tick_rate
     @score = 0
@@ -28,40 +32,36 @@ class Game
     @keyboard = args.inputs.keyboard
     @controller_one = args.inputs.controller_one
     @grid = Grid.new(width: GRID_COLUMNS, height: GRID_ROWS)
+    @ended = false
 
     reset_position_for_next_piece
     set_next_piece
+    set_future_piece
 
     build_grid
   end
 
+  attr_reader :args
   attr_reader :current_piece_x, :current_piece_y, :current_piece
+  attr_reader :future_piece
 
   def tick
-    debug
-    iterate
+    iterate unless game_over?
+    render_game_over_label if game_over?
+    reset_game
     render
     nil
   end
 
-  def debug
-    if keyboard.key_down.pageup || keyboard.key_held.pageup
-      @tick_rate += 1
-    end
-    if keyboard.key_down.pagedown || keyboard.key_held.pagedown
-      @tick_rate -= 1 unless @tick_rate == 1
-    end
-    if keyboard.key_down.r
-      $gtk.reset
-    end
-    @args.outputs.labels << [100, 600, "score = #{@score}", 255,     128,  128,   255]
-    @args.outputs.labels << [100, 500, "@tick_rate = #{@tick_rate}", 255,     128,  128,   255]
-    @args.outputs.labels << [100, 400, "@next_move = #{@next_move}", 255,     128,  128,   255]
+  def reset_game
+    return unless keyboard.key_down.r
+    start_game
   end
 
   attr_accessor :grid
 
   private
+
   attr_reader :keyboard, :controller_one
   attr_writer :current_piece_x, :current_piece_y, :current_piece
 
@@ -80,10 +80,32 @@ class Game
       reset_position_for_next_piece
       increase_score_and_speed
       set_next_piece
+      set_future_piece
+      game_over!
     else
       move_current_piece_down
     end
     reset_tick_rate
+  end
+
+  def game_over!
+    return unless space_already_occupied?
+    @ended = true
+  end
+
+  def game_over?
+    @ended
+  end
+
+  def render_game_over_label
+    @args.outputs.labels << [
+      640, # X
+      460, # Y
+      "GAME OVER", # TEXT
+      70, # SIZE_ENUM
+      1, # ALIGNMENT_ENUM
+      *COLORS[0],
+    ]
   end
 
   def increase_score_and_speed
@@ -100,9 +122,12 @@ class Game
   end
 
   def set_next_piece
-    @current_piece = select_next_piece
+    @current_piece = @future_piece || random_piece
   end
 
+  def set_future_piece
+    @future_piece = random_piece
+  end
 
   def rotate_left
     return unless rotate_left_detected?
@@ -113,7 +138,7 @@ class Game
       correct_current_piece_x_after_rotation
     end
 
-    if grid.already_occupied?(piece: current_piece, x: current_piece_x, y:current_piece_y)
+    if grid.already_occupied?(piece: current_piece, x: current_piece_x, y: current_piece_y)
       current_piece.rotate_right
       return
     end
@@ -128,7 +153,7 @@ class Game
       correct_current_piece_x_after_rotation
     end
 
-    if grid.already_occupied?(piece: current_piece, x: current_piece_x, y:current_piece_y)
+    if grid.already_occupied?(piece: current_piece, x: current_piece_x, y: current_piece_y)
       current_piece.rotate_left
       return
     end
@@ -212,9 +237,10 @@ class Game
     render_background
     render_grid
     render_current_piece
+    render_future_piece
   end
 
-  def select_next_piece
+  def random_piece
     Piece.random
   end
 
@@ -250,6 +276,15 @@ class Game
     end
   end
 
+  def render_future_piece
+    future_piece.matrix.each_with_index do |column, column_i|
+      column.each_with_index do |value, row_i|
+        render_cube(GRID_COLUMNS + 6 + column_i,
+                    2 + row_i, color: value) unless future_piece.matrix[column_i][row_i].zero?
+      end
+    end
+  end
+
   def build_grid
     rows = (0..(GRID_ROWS - 1))
     columns = (0..(GRID_COLUMNS - 1))
@@ -263,12 +298,12 @@ class Game
   end
 
   def render_background
-    @args.outputs.solids << [0,0, SCREEN_WIDTH, SCREEN_HEIGHT, [0,0,0]]
+    @args.outputs.solids << [0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, [0, 0, 0]]
     render_grid_border
-    render_next_piece_border
+    render_future_piece_border
   end
 
-  def render_next_piece_border
+  def render_future_piece_border
     6.times do |i|
       render_cube(GRID_COLUMNS + 4 + i, 0, color: 8)
       render_cube(GRID_COLUMNS + 4 + i, 6, color: 8)
