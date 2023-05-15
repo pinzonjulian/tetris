@@ -16,7 +16,7 @@ class Game
     [0, 255, 255], # teal
     [255, 0, 255], # magenta
     [170, 170, 170], # gray
-    [100,100,100] # dark_gray
+    [100,100,100, 70] # dark_gray
   ]
 
   def initialize(args)
@@ -78,8 +78,7 @@ class Game
     if collision_detected?
       plant_current_piece
       reset_position_for_next_piece
-      increase_score
-      # increase_speed
+      increase_score_and_speed
       set_next_piece
     else
       move_current_piece_down
@@ -87,10 +86,10 @@ class Game
     reset_tick_rate
   end
 
-  def increase_score
+  def increase_score_and_speed
     return unless grid.completed_rows?
 
-    grid.clear_completed_rows
+    grid.clear_completed_rows!
     @score += grid.cleared_rows_count
     grid.reset_cleared_rows_count
     increase_speed
@@ -266,6 +265,19 @@ class Game
   def render_background
     @args.outputs.solids << [0,0, SCREEN_WIDTH, SCREEN_HEIGHT, [0,0,0]]
     render_grid_border
+    render_next_piece_border
+  end
+
+  def render_next_piece_border
+    6.times do |i|
+      render_cube(GRID_COLUMNS + 4 + i, 0, color: 8)
+      render_cube(GRID_COLUMNS + 4 + i, 6, color: 8)
+    end
+
+    7.times do |i|
+      render_cube(GRID_COLUMNS + 4, i, color: 8)
+      render_cube(GRID_COLUMNS + 4 + 6, i, color: 8)
+    end
   end
 
   def render_grid_border

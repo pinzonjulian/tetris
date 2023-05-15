@@ -72,7 +72,7 @@ class Grid
     end
   end
 
-  def clear_completed_rows
+  def clear_completed_rows!
     new_cells = []
 
     cells.transpose.each do |row|
