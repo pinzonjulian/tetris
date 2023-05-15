@@ -118,7 +118,8 @@ class Game
   end
 
   def increase_speed
-    @tick_rate = @tick_rate / Math.log10(10 + @score)
+    scaling_factor = 15
+    @tick_rate = 30 / (@score/ scaling_factor + 1)
   end
 
   def set_next_piece
@@ -238,6 +239,30 @@ class Game
     render_grid
     render_current_piece
     render_future_piece
+    render_score
+    # debug
+  end
+
+  def debug
+    @args.outputs.labels << [
+      200, # X
+      700, # Y
+      "Tick rate: #{@tick_rate}", # TEXT
+      1, # SIZE_ENUM
+      1, # ALIGNMENT_ENUM
+      *COLORS[0],
+    ]
+  end
+
+  def render_score
+    @args.outputs.labels << [
+      200, # X
+      200, # Y
+      "Score: #{@score}", # TEXT
+      20, # SIZE_ENUM
+      1, # ALIGNMENT_ENUM
+      *COLORS[0],
+    ]
   end
 
   def random_piece
